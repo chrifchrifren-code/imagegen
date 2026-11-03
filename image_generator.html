@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مولّد الصور</title>
+<style>
+:root{--bg:#fff;--fg:#1c1b1f;--card:#f3edf7;--accent:#6750a4;--on:#fff;--bd:#cac4d0}
+@media (prefers-color-scheme:dark){:root{--bg:#141218;--fg:#e6e0e9;--card:#211f26;--accent:#d0bcff;--on:#381e72;--bd:#49454f}}
+*{box-sizing:border-box}
+body{margin:0;padding:16px;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;max-width:560px;margin-inline:auto}
+h1{font-size:1.3rem;margin:0 0 12px}
+textarea{width:100%;min-height:90px;padding:12px;border:1px solid var(--bd);border-radius:12px;background:var(--card);color:var(--fg);font:inherit;resize:vertical}
+.row{display:flex;gap:8px;margin:12px 0}
+.row button{flex:1;padding:10px;border:1px solid var(--bd);border-radius:20px;background:transparent;color:var(--fg);font:inherit}
+.row button.on{background:var(--accent);color:var(--on);border-color:var(--accent)}
+#go{width:100%;padding:14px;border:0;border-radius:24px;background:var(--accent);color:var(--on);font:inherit;font-weight:600}
+#go:disabled{opacity:.6}
+#out{margin-top:16px;text-align:center}
+#out img{max-width:100%;border-radius:12px;display:block;margin:0 auto}
+.hint{opacity:.75;font-size:.9rem;margin-top:8px}
+</style>
+</head>
+<body>
+<h1>مولّد الصور</h1>
+<textarea id="p" placeholder="صف الصورة (الإنجليزية تعطي نتائج أفضل)"></textarea>
+<div class="row" id="sizes">
+  <button data-w="1024" data-h="1024" class="on">مربع</button>
+  <button data-w="768" data-h="1344">طولي</button>
+  <button data-w="1344" data-h="768">عرضي</button>
+</div>
+<button id="go">ولّد الصورة</button>
+<div id="out"></div>
+
+<script>
+var w = 1024, h = 1024;
+var sizes = document.getElementById('sizes');
+sizes.addEventListener('click', function (e) {
+  var b = e.target.closest('button');
+  if (!b) return;
+  [].forEach.call(sizes.children, function (x) { x.classList.remove('on'); });
+  b.classList.add('on');
+  w = +b.dataset.w; h = +b.dataset.h;
+});
+
+var go = document.getElementById('go');
+var out = document.getElementById('out');
+
+go.addEventListener('click', function () {
+  var prompt = document.getElementById('p').value.trim();
+  if (!prompt) return;
+  var seed = Math.floor(Math.random() * 1000000);
+  var url = 'https://image.pollinations.ai/prompt/' + encodeURIComponent(prompt) +
+    '?width=' + w + '&height=' + h + '&seed=' + seed + '&nologo=true&model=flux';
+  go.disabled = true;
+  out.innerHTML = '<p>جارٍ التوليد، قد يستغرق دقيقة…</p>';
+  var img = new Image();
+  img.onload = function () {
+    out.innerHTML = '';
+    out.appendChild(img);
+    var t = document.createElement('p');
+    t.className = 'hint';
+    t.textContent = 'للحفظ: اضغط على الصورة مطولاً ثم اختر «تنزيل الصورة».';
+    out.appendChild(t);
+    go.disabled = false;
+  };
+  img.onerror = function () {
+    out.innerHTML = '<p>فشل التوليد، حاول مرة أخرى.</p>';
+    go.disabled = false;
+  };
+  img.src = url;
+});
+</script>
+</body>
+</html>
